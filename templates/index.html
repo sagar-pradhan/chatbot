@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Demonstration of Gemini API in a Flask Application.">
+
+  <title>Gemini AI Chatbot</title>
+  <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='images/iba_logo.png') }}">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+  <style>
+    body {
+      font-family: 'Times New Roman', serif;
+      margin: 0 auto;
+      background-color: #7D3C98; /* Violet Background */
+      color: #fff;
+    }
+
+    h1, h2, p {
+      font-weight: bold;
+    }
+
+    .chat-container {
+      margin-bottom: 80px;
+    }
+
+    .user-input {
+      background-color: #5B2C6F; /* Slightly darker violet for input */
+      border: none;
+      color: #fff;
+    }
+
+    .response-container {
+      background-color: #6C3483; /* Darker violet for responses */
+      border-radius: 8px;
+      padding: 10px;
+      margin-top: 10px;
+      white-space: pre-wrap; /* Ensures proper spacing */
+      transition: border 0.3s ease-in-out; /* Smooth border transition */
+    }
+
+    .response-container:hover {
+      border: 2px solid #D2B4DE; /* Border on hover with a light violet color */
+    }
+
+    .loading {
+      font-style: italic;
+      color: #ddd;
+    }
+
+    .fixed-bottom {
+      background-color: #512E5F; /* Footer input container background */
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container mt-5">
+    <h1 class="text-center">Gemini AI Chatbot</h1>
+    <p class="text-center">Powered by Google Gemini API</p>
+    <div id="chat-box" class="chat-container">
+      <!-- Chat history will be appended here -->
+    </div>
+  </div>
+
+  <!-- Input Area -->
+  <div class="fixed-bottom p-3">
+    <div class="input-group">
+      <input type="text" class="form-control user-input" id="chat-input" placeholder="Type your message here...">
+      <button id="send-btn" class="btn btn-primary">Ask Gemini</button>
+    </div>
+  </div>
+
+  <!-- JavaScript -->
+  <script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
+  <script>
+    $("#send-btn").click(function () {
+      var question = $("#chat-input").val().trim();
+      if (question === "") return; // Prevent empty input
+
+      // Append user input to chat
+      $("#chat-box").append(`
+        <div class="text-white">
+          <strong>You:</strong> ${question}
+        </div>
+      `);
+
+      // Clear input
+      $("#chat-input").val("");
+
+      // Show loading animation
+      $("#chat-box").append(`
+        <div class="response-container loading" id="loading">
+          <em>Gemini is thinking...</em>
+        </div>
+      `);
+
+      // Send prompt to Flask backend
+      $.ajax({
+        type: "POST",
+        url: "/",
+        data: { 'prompt': question },
+        success: function (response) {
+          $("#loading").remove();
+
+          // Replace line breaks with <br> for better display
+          const formattedResponse = response.replace(/\n/g, "<br>");
+
+          $("#chat-box").append(`
+            <div class="response-container text-white">
+              <strong>Gemini:</strong> ${formattedResponse}
+            </div>
+          `);
+
+          // Scroll to the bottom of the chatbox
+          $('html, body').animate({
+            scrollTop: $(document).height()
+          }, 300);
+        },
+        error: function () {
+          $("#loading").remove();
+          $("#chat-box").append(`
+            <div class="response-container text-danger">
+              <strong>Error:</strong> Could not connect to Gemini API. Please try again later.
+            </div>
+          `);
+        }
+      });
+    });
+  </script>
+</body>
+
+</html>
+
